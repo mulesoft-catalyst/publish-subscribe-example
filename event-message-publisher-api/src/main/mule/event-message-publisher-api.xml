@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:salesforce="http://www.mulesoft.org/schema/mule/salesforce" xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:amqp="http://www.mulesoft.org/schema/mule/amqp"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	 xmlns="http://www.mulesoft.org/schema/mule/core" 
+	 xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/amqp http://www.mulesoft.org/schema/mule/amqp/current/mule-amqp.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	<flow name="message-acquisition-flow" doc:id="d8e92a34-d34d-4e1a-bce3-7405b9010241" >
+		<http:listener doc:name="Listener" doc:id="88476dbb-04af-429d-83f3-20714be8d406" config-ref="HTTP_Listener_config" path="/address">
+			<http:response statusCode="202" >
+				<http:body ><![CDATA[{
+  "response" : "Event accepted and pushed to exchange successfully"
+}]]></http:body>
+			</http:response>
+			<http:error-response statusCode="400" />
+		</http:listener>
+		<amqp:publish doc:name="publish-message" doc:id="5c2bcc7b-8b43-4e20-b8ed-44b76926ba98" config-ref="AMQP_Config" exchangeName="${rabbitmq.addexchange}" sendCorrelationId="AUTO">
+			<amqp:routing-keys>
+			</amqp:routing-keys>
+			<amqp:message >
+				<amqp:headers ><![CDATA[#[%dw 2.0
+output application/java
+---
+{
+  "x-retry-count": 0
+}]]]></amqp:headers>
+			</amqp:message>
+		</amqp:publish>
+	</flow>
+</mule>
